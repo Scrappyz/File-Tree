@@ -1,9 +1,11 @@
 #include <iostream>
 #include <vector>
-#include <unordered_set>
+#include <set>
 #include <string>
 #include <filesystem>
+#include <fstream>
 #include <unistd.h>
+#include "print.hpp"
 
 using namespace std;
 
@@ -26,24 +28,16 @@ string getProgramName(char ch[])
     return name;
 }
 
-vector<string> getExcludes(const vector<string>& args)
+set<string> getExcludes(const vector<string>& args)
 {
-    unordered_set<string> s;
-    vector<string> excludes;
-    bool exclude = false;
+    set<string> excludes;
     for(int i = 0; i < args.size(); i++) {
-        if(args[i] == "-e") {
-            exclude = true;
-        } else if(exclude && args[i].size() > 1 && args[i][0] == '.') {
-            if(s.find(args[i]) == s.end()) {
-                s.insert(args[i]);
-                excludes.push_back(args[i]);
-            } 
-        } else if(exclude && args[i][0] == '-') {
-            return excludes;
-        }
-        if(exclude && args[i] == ".*") {
-            return vector<string>(1, ".*");
+        if(args[i] == "-e" || args[i] == "--exclude") {
+            i++;
+            while(i < args.size() && args[i][0] != '-') {
+                excludes.insert(args[i]);
+                i++;
+            }
         }
     }
     return excludes;
@@ -71,10 +65,13 @@ string getOutputText(const vector<string>& args)
             str = args[i+1];
         }
     }
+    if(!str.empty() && str.find(".txt") == string::npos) {
+        str += ".txt";
+    }
     return str;
 }
 
-void printDirectoryTree(const filesystem::path& path, int level = 0, string append = "")
+void printDirectoryTree(const filesystem::path& path, ofstream& text_file, int level = 0, const string& append = "")
 {
     string current_path = path.filename().string();
     if(filesystem::exists(path)) {
@@ -82,17 +79,27 @@ void printDirectoryTree(const filesystem::path& path, int level = 0, string appe
         for(const auto& i : filesystem::directory_iterator(path)) {
             file_count++;
         }
-        if(level == 0) {
+        if(level == 0 && !text_file.is_open()) {
             cout << path.filename().string() << endl;
+        } else if(level == 0 && text_file.is_open()) {
+            text_file << path.filename().string() << endl;
         }
         int counter = 0;
         for(const auto& it : filesystem::directory_iterator(path)) {
             string filename = it.path().filename().string();
-            if(level > 0) {
-                cout << append;
+            if(text_file.is_open()) {
+                if(level > 0) {
+                    text_file << append;
+                }
+                text_file << "+-- ";
+                text_file << filename << endl;
+            } else {
+                if(level > 0) {
+                    cout << append;
+                }
+                cout << "+-- ";
+                cout << filename << endl;
             }
-            cout << "+-- ";
-            cout << filename << " [level " << level << "]" << endl;
             if(filesystem::is_directory(it.status())) {
                 string next_append = append + "    ";
                 if(counter >= file_count-1) {
@@ -100,7 +107,7 @@ void printDirectoryTree(const filesystem::path& path, int level = 0, string appe
                 } else {
                     next_append[level*4] = '|';
                 }
-                printDirectoryTree(it, level+1, next_append);
+                printDirectoryTree(it, text_file, level+1, next_append);
             }
             counter++;
         }
@@ -113,8 +120,10 @@ int main(int argc, char** argv)
     string program_name = getProgramName(argv[0]);
     args.assign(argv, argv+argc);
     filesystem::path path(getPath(args));
-    string output_text = getOutputText(args);
-    vector<string> excludes = getExcludes(args);
-    printDirectoryTree(path);
+    ofstream output_text(getOutputText(args));
+    set<string> excludes = getExcludes(args);
+    printDirectoryTree(path, output_text);
+    // print(excludes, '\n');
+    // cout << output_text << endl;
     return 0;
 }
