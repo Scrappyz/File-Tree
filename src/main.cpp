@@ -1,18 +1,29 @@
 #include <iostream>
 #include <vector>
-#include <set>
+#include <unordered_set>
 #include <string>
 #include <filesystem>
 #include <fstream>
 #include <unistd.h>
-#include "print.hpp"
 
 using namespace std;
 
-void showHelp()
+void showHelp(const string& program)
 {
     cout << "FORMAT:" << endl;
-    
+    cout << program << " <PATH>" << endl;
+    cout << program << " <PATH> <EXCLUDES>" << endl;
+    cout << program << " <PATH> <EXCLUDES> <OUTPUT_FILE>" << endl;
+    cout << "EXAMPLE:" << endl;
+    cout << program << " path/to/dir -e '~.txt' 'My~folder' -o output.txt" << endl;
+    cout << "OPTIONS:" << endl;
+    cout << "-e, --exclude      Exclude files from printing" << endl;
+    cout << "-o, --output       Generate text file" << endl;
+    cout << "ADDITIONAL INFO:" << endl;
+    cout << "- If path is not specified, it will print the current path" << endl;
+    cout << "- '~' means any or more characters" << endl; 
+    cout << "  eg: '~.txt' will match all files that end with '.txt'" << endl;
+    cout << "  and 'file~' will match all files that start with 'file'" << endl; 
 }
 
 string getProgramName(char ch[])
@@ -28,9 +39,9 @@ string getProgramName(char ch[])
     return name;
 }
 
-set<string> getExcludes(const vector<string>& args)
+unordered_set<string> getExcludes(const vector<string>& args)
 {
-    set<string> excludes;
+    unordered_set<string> excludes;
     for(int i = 0; i < args.size(); i++) {
         if(args[i] == "-e" || args[i] == "--exclude") {
             i++;
@@ -71,9 +82,42 @@ string getOutputText(const vector<string>& args)
     return str;
 }
 
-void printDirectoryTree(const filesystem::path& path, ofstream& text_file, int level = 0, const string& append = "")
+bool isExclude(const string& filename, const unordered_set<string>& excludes)
 {
-    string current_path = path.filename().string();
+    for(const auto& exc : excludes) {
+        string ex = exc;
+        if(ex == "~" || ex == filename) {
+            return true;
+        }
+        int i = 0;
+        int j = 0;
+        while(i < filename.size() && j < ex.size()) {
+            if(filename[i] == ex[j]) {
+                i++;
+                j++;
+            } else if(j < ex.size()-1 && ex[j] == '~') {
+                j++;
+                while(i < filename.size() && filename[i] != ex[j]) {
+                    i++;
+                }
+            } else if(j >= ex.size()-1 && ex.back() == '~') {
+                i++;
+                if(i >= filename.size()) {
+                    j++;
+                }
+            } else {
+                break;
+            }
+        }
+        if(i >= filename.size() && j >= ex.size()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void printDirectoryTree(const filesystem::path& path, const unordered_set<string>& excludes, ofstream& text_file, int level = 0, const string& append = "")
+{
     if(filesystem::exists(path)) {
         int file_count = 0;
         for(const auto& i : filesystem::directory_iterator(path)) {
@@ -87,6 +131,10 @@ void printDirectoryTree(const filesystem::path& path, ofstream& text_file, int l
         int counter = 0;
         for(const auto& it : filesystem::directory_iterator(path)) {
             string filename = it.path().filename().string();
+            if(isExclude(filename, excludes)) {
+                counter++;
+                continue;
+            }
             if(text_file.is_open()) {
                 if(level > 0) {
                     text_file << append;
@@ -107,7 +155,7 @@ void printDirectoryTree(const filesystem::path& path, ofstream& text_file, int l
                 } else {
                     next_append[level*4] = '|';
                 }
-                printDirectoryTree(it, text_file, level+1, next_append);
+                printDirectoryTree(it, excludes, text_file, level+1, next_append);
             }
             counter++;
         }
@@ -119,11 +167,13 @@ int main(int argc, char** argv)
     vector<string> args;
     string program_name = getProgramName(argv[0]);
     args.assign(argv, argv+argc);
+    if(args.size() > 1 && (args[1] == "-h" || args[1] == "--help")) {
+        showHelp(program_name);
+        return 0;
+    }
     filesystem::path path(getPath(args));
     ofstream output_text(getOutputText(args));
-    set<string> excludes = getExcludes(args);
-    printDirectoryTree(path, output_text);
-    // print(excludes, '\n');
-    // cout << output_text << endl;
+    unordered_set<string> excludes = getExcludes(args);
+    printDirectoryTree(path, excludes, output_text);
     return 0;
 }
