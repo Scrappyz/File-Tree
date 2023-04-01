@@ -17,6 +17,7 @@ void showHelp(const string& program)
     cout << "EXAMPLE:" << endl;
     cout << program << " path/to/dir -e '~.txt' 'My~folder' -o output.txt" << endl;
     cout << "OPTIONS:" << endl;
+    cout << "-h, --help         Show help text" << endl;
     cout << "-e, --exclude      Exclude files from printing" << endl;
     cout << "-o, --output       Generate text file" << endl;
     cout << "ADDITIONAL INFO:" << endl;
@@ -72,7 +73,7 @@ string getOutputText(const vector<string>& args)
 {
     string str;
     for(int i = 0; i < args.size(); i++) {
-        if(args[i] == "-o" && i < args.size()-1) {
+        if((args[i] == "-o" || args[i] == "--output") && i < args.size()-1) {
             str = args[i+1];
         }
     }
