@@ -83,7 +83,6 @@ unordered_set<string> getExcludePattern(const vector<string>& args)
             }
         }
     }
-    
     return excludes;
 }
 
@@ -108,7 +107,6 @@ string getPath(const vector<string>& args)
         getcwd(currentPath, FILENAME_MAX);
         str = currentPath;
     }
-   
     return str;
 }
 
@@ -186,7 +184,6 @@ void printDirectoryTree(const filesystem::path& path, const unordered_set<string
         for(const auto& it : filesystem::directory_iterator(path)) {
             filename = it.path().filename().string();
             if(excluded_files.find(filename) != excluded_files.end()) {
-                counter++;
                 continue;
             }
             if(text_file.is_open()) {
