@@ -19,13 +19,18 @@ void showHelp(const string& program)
     cout << program << " path/to/dir -e '$.txt' 'My$folder' -o output.txt" << endl;
     cout << "OPTIONS:" << endl;
     cout << "-h, --help         Show help text" << endl;
-    cout << "-e, --exclude      Exclude files from printing" << endl;
+    cout << "-e, --exclude      Exclude files from printing via regular expression" << endl;
     cout << "-o, --output       Generate text file" << endl;
+    cout << "REGULAR EXPRESSIONS:" << endl;
+    cout << "- '$' means any or more characters" << endl;
+    cout << "   - '$.txt' will match all files that end with '.txt'" << endl;
+    cout << "   - '$.$' will match all files that have an extension" << endl;
+    cout << "   - 'file$' will match all files that start with 'file'" << endl;
+    cout << "   - 'My$Folder' will match files such as 'MySubFolder' and 'MyfavFolder'" << endl;
+    cout << "- '/' or '\\' means print the directory but not its contents" << endl;
+    cout << "   - 'build/' this expression will print the directory 'build' but not its contents" << endl;
     cout << "ADDITIONAL INFO:" << endl;
     cout << "- If path is not specified, it will print the current path" << endl;
-    cout << "- '$' means any or more characters" << endl; 
-    cout << "  eg: '$.txt' will match all files that end with '.txt'" << endl;
-    cout << "  and 'file$' will match all files that start with 'file'" << endl; 
 }
 
 bool invalidFilenameChar(char ch)
@@ -199,7 +204,7 @@ void printDirectoryTree(const filesystem::path& path, const unordered_set<string
                 cout << "+-- ";
                 cout << filename << endl;
             }
-            if(filesystem::is_directory(it.status())) {
+            if(filesystem::is_directory(it.status()) && (!isExclude(filename + "/", excludes) && !isExclude(filename + "\\", excludes))) {
                 string next_append = append + "    ";
                 if(counter >= file_count-1) {
                     next_append[level*4] = ' ';

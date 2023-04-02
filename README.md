@@ -19,10 +19,17 @@ FileTree.exe path/to/dir -e '$.txt' 'My$folder' -o output.txt
 -o, --output       Generate text file
 ```
 
+#### Regular Expressions
+- `$` means any or more characters
+  - `$.txt` will match all files that end with `.txt`
+  - `$.$` will match all files that have an extension
+  - `file$` will match all files that start with `file`
+  - `My$Folder` will match files such as `MySubFolder` and `MyfavFolder`
+- `/` or `\` means print the directory but not its contents
+  - `build/` this expression will print the directory `build` but not its contents
+
 #### Additional Info
 - If path is not specified, it will print the current path
-- '$' means any or more characters
-  - Eg: `$.txt` will match all files that end with `.txt` and `file$` will match all files that start with `file`
 
 #### Example Output
 ```
