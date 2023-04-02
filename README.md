@@ -32,6 +32,11 @@ FileTree.exe path/to/dir -e '$.txt' 'My$folder' -o output.txt
 - If path is not specified, it will print the current path
 
 #### Example Output
+Input:
+```
+FileTree.exe 
+```
+
 ```
 CurrentDir
 +-- Folder1
