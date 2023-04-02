@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <unistd.h>
+#include "print.hpp"
 
 using namespace std;
 
@@ -15,16 +16,46 @@ void showHelp(const string& program)
     cout << program << " <PATH> <EXCLUDES>" << endl;
     cout << program << " <PATH> <EXCLUDES> <OUTPUT_FILE>" << endl;
     cout << "EXAMPLE:" << endl;
-    cout << program << " path/to/dir -e '~.txt' 'My~folder' -o output.txt" << endl;
+    cout << program << " path/to/dir -e '$.txt' 'My$folder' -o output.txt" << endl;
     cout << "OPTIONS:" << endl;
     cout << "-h, --help         Show help text" << endl;
     cout << "-e, --exclude      Exclude files from printing" << endl;
     cout << "-o, --output       Generate text file" << endl;
     cout << "ADDITIONAL INFO:" << endl;
     cout << "- If path is not specified, it will print the current path" << endl;
-    cout << "- '~' means any or more characters" << endl; 
-    cout << "  eg: '~.txt' will match all files that end with '.txt'" << endl;
-    cout << "  and 'file~' will match all files that start with 'file'" << endl; 
+    cout << "- '$' means any or more characters" << endl; 
+    cout << "  eg: '$.txt' will match all files that end with '.txt'" << endl;
+    cout << "  and 'file$' will match all files that start with 'file'" << endl; 
+}
+
+bool invalidFilenameChar(char ch)
+{
+    switch(ch) {
+        case '#':
+        case '%':
+        case '&':
+        case '{':
+        case '}':
+        case '\\':
+        case '/':
+        case '<':
+        case '>':
+        case '*':
+        case '?':
+        case '~':
+        case '!':
+        case '\'':
+        case '\"':
+        case ':':
+        case '@':
+        case '+':
+        case '`':
+        case '|':
+        case '=':
+            return true;
+        default:
+            return false;
+    }
 }
 
 string getProgramName(char ch[])
@@ -40,7 +71,7 @@ string getProgramName(char ch[])
     return name;
 }
 
-unordered_set<string> getExcludes(const vector<string>& args)
+unordered_set<string> getExcludePattern(const vector<string>& args)
 {
     unordered_set<string> excludes;
     for(int i = 0; i < args.size(); i++) {
@@ -52,6 +83,7 @@ unordered_set<string> getExcludes(const vector<string>& args)
             }
         }
     }
+    
     return excludes;
 }
 
@@ -59,13 +91,24 @@ string getPath(const vector<string>& args)
 {
     string str;
     if(args.size() > 1 && args[1][0] != '-') {
-        str = args[1];
+        int i = 0;
+        while(i < args[1].size() && (invalidFilenameChar(args[1][i]) || args[1][i] == '.')) {
+            i++;
+        }
+        while(i < args[1].size()) {
+            str.push_back(args[1][i]);
+            i++;
+        }
+        while(invalidFilenameChar(str.back())) {
+            str.pop_back();
+        }
     }
     if(str.empty()) {
         char currentPath[FILENAME_MAX];
         getcwd(currentPath, FILENAME_MAX);
         str = currentPath;
     }
+   
     return str;
 }
 
@@ -87,7 +130,7 @@ bool isExclude(const string& filename, const unordered_set<string>& excludes)
 {
     for(const auto& exc : excludes) {
         string ex = exc;
-        if(ex == "~" || ex == filename) {
+        if(ex == "$" || ex == filename) {
             return true;
         }
         int i = 0;
@@ -96,12 +139,12 @@ bool isExclude(const string& filename, const unordered_set<string>& excludes)
             if(filename[i] == ex[j]) {
                 i++;
                 j++;
-            } else if(j < ex.size()-1 && ex[j] == '~') {
+            } else if(j < ex.size()-1 && ex[j] == '$') {
                 j++;
                 while(i < filename.size() && filename[i] != ex[j]) {
                     i++;
                 }
-            } else if(j >= ex.size()-1 && ex.back() == '~') {
+            } else if(j >= ex.size()-1 && ex.back() == '$') {
                 i++;
                 if(i >= filename.size()) {
                     j++;
@@ -120,9 +163,19 @@ bool isExclude(const string& filename, const unordered_set<string>& excludes)
 void printDirectoryTree(const filesystem::path& path, const unordered_set<string>& excludes, ofstream& text_file, int level = 0, const string& append = "")
 {
     if(filesystem::exists(path)) {
+        string filename = path.filename().string();
+        if(level == 0 && isExclude(filename, excludes)) {
+            return;
+        }
         int file_count = 0;
+        unordered_set<string> excluded_files;
         for(const auto& i : filesystem::directory_iterator(path)) {
-            file_count++;
+            filename = i.path().filename().string();
+            if(isExclude(filename, excludes)) {
+                excluded_files.insert(filename);
+            } else {
+                file_count++;
+            }
         }
         if(level == 0 && !text_file.is_open()) {
             cout << path.filename().string() << endl;
@@ -131,8 +184,8 @@ void printDirectoryTree(const filesystem::path& path, const unordered_set<string
         }
         int counter = 0;
         for(const auto& it : filesystem::directory_iterator(path)) {
-            string filename = it.path().filename().string();
-            if(isExclude(filename, excludes)) {
+            filename = it.path().filename().string();
+            if(excluded_files.find(filename) != excluded_files.end()) {
                 counter++;
                 continue;
             }
@@ -174,7 +227,7 @@ int main(int argc, char** argv)
     }
     filesystem::path path(getPath(args));
     ofstream output_text(getOutputText(args));
-    unordered_set<string> excludes = getExcludes(args);
-    printDirectoryTree(path, excludes, output_text);
+    unordered_set<string> patterns = getExcludePattern(args);
+    printDirectoryTree(path, patterns, output_text);
     return 0;
 }
