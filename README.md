@@ -9,7 +9,7 @@ FileTree.exe <PATH> <EXCLUDES> <OUTPUT_FILE>
 
 #### Example
 ```
-FileTree.exe path/to/dir -e '~.txt' 'My~folder' -o output.txt
+FileTree.exe path/to/dir -e '$.txt' 'My$folder' -o output.txt
 ```
 
 #### Options
@@ -21,8 +21,8 @@ FileTree.exe path/to/dir -e '~.txt' 'My~folder' -o output.txt
 
 #### Additional Info
 - If path is not specified, it will print the current path
-- '~' means any or more characters
-  - Eg: `~.txt` will match all files that end with `.txt` and `file~` will match all files that start with `file`
+- '$' means any or more characters
+  - Eg: `$.txt` will match all files that end with `.txt` and `file$` will match all files that start with `file`
 
 #### Example Output
 ```
