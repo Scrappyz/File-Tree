@@ -34,7 +34,7 @@ FileTree.exe path/to/dir -e '$.txt' 'My$folder' -o output.txt
 #### Example Output
 Input:
 ```
-FileTree.exe 
+FileTree.exe "D:\Documents\Codes\VS Code\C++\Tools\FileTree\bin\Debug\CurrentDir"
 ```
 
 ```
@@ -62,5 +62,26 @@ CurrentDir
     +-- Sub3
         +-- new.txt
         +-- x.txt
+```
+
+Input:
+```
+FileTree.exe "D:/Documents/Codes/VS Code/C++/Tools/FileTree/bin/Debug/CurrentDir" -e '$.$'
+```
+
+```
+CurrentDir
++-- Folder1
+|   +-- SubFolder1
+|   |   +-- SuberFolder
+|   |   +-- SuberFolder2
+|   +-- SubFolder2
++-- Folder2
+    +-- Sub1
+    |   +-- Sub2
+    |   +-- Sub3
+    +-- Sub2
+    |   +-- SubSub1
+    +-- Sub3
 ```
 

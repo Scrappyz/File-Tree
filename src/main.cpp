@@ -227,12 +227,9 @@ int main(int argc, char** argv)
         showHelp(program_name);
         return 0;
     }
-    string str = getPath(args);
     filesystem::path path(getPath(args));
     ofstream output_text(getOutputText(args));
     unordered_set<string> patterns = getExcludePattern(args);
     printDirectoryTree(path, patterns, output_text);
-    print(args, '\n');
-    cout << "Path: " << str << endl;
     return 0;
 }
