@@ -148,10 +148,8 @@ bool isExclude(const string& filename, const unordered_set<string>& excludes)
                     i++;
                 }
             } else if(j >= ex.size()-1 && ex.back() == '$') {
-                i++;
-                if(i >= filename.size()) {
-                    j++;
-                }
+                i = filename.size();
+                j = ex.size();
             } else {
                 break;
             }
