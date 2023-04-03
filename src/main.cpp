@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 #include <string>
 #include <filesystem>
 #include <fstream>
@@ -115,11 +116,11 @@ string getPath(const vector<string>& args)
     return str;
 }
 
-string getOutputText(const vector<string>& args)
+string getTextFile(const vector<string>& args)
 {
     string str;
     for(int i = 0; i < args.size(); i++) {
-        if((args[i] == "-o" || args[i] == "--output") && i < args.size()-1) {
+        if(args[i][0] == '-' && i < args.size()-1 && (args[i] == "-o" || args[i] == "--output" || args[i] == "-md" || args[i] == "--make-directory")) {
             str = args[i+1];
         }
     }
@@ -127,6 +128,15 @@ string getOutputText(const vector<string>& args)
         str += ".txt";
     }
     return str;
+}
+
+void setOptions(const vector<string>& args, unordered_map<string, bool>& options)
+{
+    for(int i = 0; i < args.size(); i++) {
+        if(args[i][0] == '-' && options.count(args[i])) {
+            options[args[i]] = true;
+        }
+    }
 }
 
 bool isExclude(const string& filename, const unordered_set<string>& excludes)
@@ -159,6 +169,43 @@ bool isExclude(const string& filename, const unordered_set<string>& excludes)
         }
     }
     return false;
+}
+
+void makeDirectory(const filesystem::path& path, ifstream& text_file, const string& prev_path = "", int level = 0)
+{
+    if(filesystem::exists(path)) {
+        string str;
+        while(getline(text_file, str)) {
+            int i = 0;
+            int counter = 0;
+            string filename;
+            while(str.back() == ' ') {
+                str.pop_back();
+            }
+            while(i < str.size() && (str[i] == '+' || str[i] == '|' || str[i] == '-' || str[i] == ' ')) {
+                counter++;
+                i++;
+            }
+            while(i < str.size()) {
+                filename.push_back(str[i]);
+                i++;
+            }
+            counter /= 4;
+            if(filename.back() == '/' || filename.back() == '\\') {
+                filename.pop_back();
+                string temp = prev_path + filename;
+                if(counter == level) {
+                    filesystem::path folder(temp);
+                    filesystem::create_directories(folder);
+                    makeDirectory(folder, text_file, prev_path + filename + "/", level+1);
+                } else {
+                    return;
+                }
+            } else {
+                ofstream file(prev_path + filename);
+            }
+        }
+    }
 }
 
 void printDirectoryTree(const filesystem::path& path, const unordered_set<string>& excludes, ofstream& text_file, int level = 0, const string& append = "")
@@ -203,7 +250,11 @@ void printDirectoryTree(const filesystem::path& path, const unordered_set<string
                 cout << filename;
             }
             if(filesystem::is_directory(it.status())) {
-                cout << "/" << endl;
+                if(text_file.is_open()) {
+                    text_file << "/" << endl;
+                } else {
+                    cout << "/" << endl;
+                }
                 if(!isExclude(filename + "/", excludes) && !isExclude(filename + "\\", excludes)) {
                     string next_append = append + "    ";
                     if(counter >= file_count-1) {
@@ -224,15 +275,36 @@ void printDirectoryTree(const filesystem::path& path, const unordered_set<string
 int main(int argc, char** argv) 
 {
     vector<string> args;
+    unordered_map<string, bool> options = {{"-h", 0}, {"--help", 0}, {"-e", 0}, {"--exclude", 0}, {"-o", 0}, {"--output", 0},
+    {"-md", 0}, {"--make-directory", 0}};
     string program_name = getProgramName(argv[0]);
     args.assign(argv, argv+argc);
-    if(args.size() > 1 && (args[1] == "-h" || args[1] == "--help")) {
+    setOptions(args, options);
+    if(options.at("-h") || options.at("--help")) {
         showHelp(program_name);
         return 0;
     }
+    //string str = "D:/Documents/Codes/VS Code/C++/Tools/FileTree/bin/Debug";
     filesystem::path path(getPath(args));
-    ofstream output_text(getOutputText(args));
-    unordered_set<string> patterns = getExcludePattern(args);
-    printDirectoryTree(path, patterns, output_text);
+    string text_file = getTextFile(args);
+    //options["-md"] = true;
+    if(options.at("-md") || options.at("--make-directory")) {
+        ifstream file(text_file);
+        if(!file.is_open()) {
+            cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
+        } else {
+            makeDirectory(path, file);
+            file.close();
+        }
+    } else {
+        ofstream file(text_file);
+        if(!text_file.empty() && !file.is_open()) {
+            cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
+        } else {
+            unordered_set<string> patterns = getExcludePattern(args);
+            printDirectoryTree(path, patterns, file);
+            file.close();
+        }
+    }
     return 0;
 }
