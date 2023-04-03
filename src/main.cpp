@@ -284,9 +284,9 @@ int main(int argc, char** argv)
         showHelp(program_name);
         return 0;
     }
-    //string str = "D:/Documents/Codes/VS Code/C++/Tools/FileTree/bin/Debug";
+    string str = "D:/Documents/Codes/VS Code/C++/Tools/FileTree/bin/Debug";
     filesystem::path path(getPath(args));
-    string text_file = getTextFile(args);
+    string text_file = "../../test.txt";
     //options["-md"] = true;
     if(options.at("-md") || options.at("--make-directory")) {
         ifstream file(text_file);
