@@ -179,9 +179,9 @@ void printDirectoryTree(const filesystem::path& path, const unordered_set<string
             }
         }
         if(level == 0 && !text_file.is_open()) {
-            cout << path.filename().string() << endl;
+            cout << path.filename().string() << "/" << endl;
         } else if(level == 0 && text_file.is_open()) {
-            text_file << path.filename().string() << endl;
+            text_file << path.filename().string() << "/" << endl;
         }
         int counter = 0;
         for(const auto& it : filesystem::directory_iterator(path)) {
@@ -194,22 +194,27 @@ void printDirectoryTree(const filesystem::path& path, const unordered_set<string
                     text_file << append;
                 }
                 text_file << "+-- ";
-                text_file << filename << endl;
+                text_file << filename;
             } else {
                 if(level > 0) {
                     cout << append;
                 }
                 cout << "+-- ";
-                cout << filename << endl;
+                cout << filename;
             }
-            if(filesystem::is_directory(it.status()) && (!isExclude(filename + "/", excludes) && !isExclude(filename + "\\", excludes))) {
-                string next_append = append + "    ";
-                if(counter >= file_count-1) {
-                    next_append[level*4] = ' ';
-                } else {
-                    next_append[level*4] = '|';
+            if(filesystem::is_directory(it.status())) {
+                cout << "/" << endl;
+                if(!isExclude(filename + "/", excludes) && !isExclude(filename + "\\", excludes)) {
+                    string next_append = append + "    ";
+                    if(counter >= file_count-1) {
+                        next_append[level*4] = ' ';
+                    } else {
+                        next_append[level*4] = '|';
+                    }
+                    printDirectoryTree(it, excludes, text_file, level+1, next_append);
                 }
-                printDirectoryTree(it, excludes, text_file, level+1, next_append);
+            } else {
+                cout << endl;
             }
             counter++;
         }
