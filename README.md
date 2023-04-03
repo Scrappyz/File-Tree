@@ -38,28 +38,28 @@ FileTree.exe "D:\Documents\Codes\VS Code\C++\Tools\FileTree\bin\Debug\CurrentDir
 ```
 
 ```
-CurrentDir
-+-- Folder1
-|   +-- SubFolder1
+CurrentDir/
++-- Folder1/
+|   +-- SubFolder1/
 |   |   +-- file1.txt
-|   |   +-- SuberFolder
+|   |   +-- SuberFolder/
 |   |   |   +-- new.txt
 |   |   |   +-- new4.txt
-|   |   +-- SuberFolder2
-|   +-- SubFolder2
-+-- Folder2
+|   |   +-- SuberFolder2/
+|   +-- SubFolder2/
++-- Folder2/
     +-- file2.txt
-    +-- Sub1
+    +-- Sub1/
     |   +-- hello.txt
     |   +-- hello2.txt
-    |   +-- Sub2
+    |   +-- Sub2/
     |   |   +-- gg.txt
     |   |   +-- ggg.txt
-    |   +-- Sub3
-    +-- Sub2
+    |   +-- Sub3/
+    +-- Sub2/
     |   +-- sub.txt
-    |   +-- SubSub1
-    +-- Sub3
+    |   +-- SubSub1/
+    +-- Sub3/
         +-- new.txt
         +-- x.txt
 ```
@@ -70,18 +70,18 @@ FileTree.exe "D:/Documents/Codes/VS Code/C++/Tools/FileTree/bin/Debug/CurrentDir
 ```
 
 ```
-CurrentDir
-+-- Folder1
-|   +-- SubFolder1
-|   |   +-- SuberFolder
-|   |   +-- SuberFolder2
-|   +-- SubFolder2
-+-- Folder2
-    +-- Sub1
-    |   +-- Sub2
-    |   +-- Sub3
-    +-- Sub2
-    |   +-- SubSub1
-    +-- Sub3
+CurrentDir/
++-- Folder1/
+|   +-- SubFolder1/
+|   |   +-- SuberFolder/
+|   |   +-- SuberFolder2/
+|   +-- SubFolder2/
++-- Folder2/
+    +-- Sub1/
+    |   +-- Sub2/
+    |   +-- Sub3/
+    +-- Sub2/
+    |   +-- SubSub1/
+    +-- Sub3/
 ```
 
