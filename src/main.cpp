@@ -265,7 +265,11 @@ void printDirectoryTree(const filesystem::path& path, const unordered_set<string
                     printDirectoryTree(it, excludes, text_file, level+1, next_append);
                 }
             } else {
-                cout << endl;
+                if(text_file.is_open()) {
+                    text_file << endl;
+                } else {
+                    cout << endl;
+                }
             }
             counter++;
         }
@@ -284,8 +288,8 @@ int main(int argc, char** argv)
         showHelp(program_name);
         return 0;
     }
-    string str = "D:/Documents/Codes/VS Code/C++/Tools/FileTree/bin/Debug";
-    filesystem::path path(getPath(args));
+    string str = "D:/Documents/Codes/VS Code/C++/Tools/FileTree/bin/Debug/CurrentDir";
+    filesystem::path path(str);
     string text_file = "../../test.txt";
     //options["-md"] = true;
     if(options.at("-md") || options.at("--make-directory")) {
@@ -294,8 +298,8 @@ int main(int argc, char** argv)
             cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
         } else {
             makeDirectory(path, file);
-            file.close();
         }
+        file.close();
     } else {
         ofstream file(text_file);
         if(!text_file.empty() && !file.is_open()) {
@@ -303,8 +307,8 @@ int main(int argc, char** argv)
         } else {
             unordered_set<string> patterns = getExcludePattern(args);
             printDirectoryTree(path, patterns, file);
-            file.close();
         }
+        file.close();
     }
     return 0;
 }
