@@ -101,9 +101,7 @@ string getPath(const vector<string>& args, const OS& os)
                     } else if(os == OS::Mac_OS && path.back() == ':') {
                         parent_dir--;
                     }
-                    if(parent_dir != 0) {
-                        path.pop_back();
-                    }
+                    path.pop_back();
                 }
             } else {
                 if(os == OS::Windows && path.back() != '/' && path.back() != '\\') {
@@ -157,42 +155,6 @@ void setOptions(const vector<string>& args, unordered_map<string, bool>& options
     }
 }
 
-// int main(int argc, char** argv) 
-// {
-//     vector<string> args;
-//     unordered_map<string, bool> options = {{"-h", 0}, {"--help", 0}, {"-e", 0}, {"--exclude", 0}, {"-o", 0}, {"--output", 0},
-//     {"-md", 0}, {"--make-directory", 0}};
-//     string program_name = getProgramName(argv[0]);
-//     args.assign(argv, argv+argc);
-//     setOptions(args, options);
-//     if(options.at("-h") || options.at("--help")) {
-//         showHelp(program_name);
-//         return 0;
-//     }
-//     filesystem::path path(getPath(args));
-//     string text_file = getTextFile(args);
-//     if(options.at("-md") || options.at("--make-directory")) {
-//         ifstream file(text_file);
-//         if(!file.is_open()) {
-//             cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
-//         } else {
-//             makeDirectory(path, file);
-//         }
-//         file.close();
-//     } else {
-//         ofstream file(text_file);
-//         if(!text_file.empty() && !file.is_open()) {
-//             cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
-//         } else {
-//             unordered_set<string> patterns = getExcludePattern(args);
-//             printDirectoryTree(path, patterns, file);
-//         }
-//         file.close();
-//     }
-//     return 0;
-// }
-
-// Debug
 int main(int argc, char** argv) 
 {
     OS os = OS::Unknown;
@@ -217,10 +179,11 @@ int main(int argc, char** argv)
         return 0;
     }
     string p = getPath(args, os);
-    cout << "path: " << p << endl;
+    //cout << "path: " << p << endl;
     filesystem::path path(p);
     string text_file = getTextFile(args);
-    cout << "text_file: " << text_file << endl;
+    //cout << "text_file: " << text_file << endl;
+    unordered_set<string> patterns = getExcludePattern(args);
     if(options.at("-md") || options.at("--make-directory")) {
         ifstream file(text_file);
         if(!file.is_open()) {
@@ -234,10 +197,59 @@ int main(int argc, char** argv)
         if(!text_file.empty() && !file.is_open()) {
             cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
         } else {
-            unordered_set<string> patterns = getExcludePattern(args);
             printDirectoryTree(path, patterns, file);
         }
         file.close();
     }
     return 0;
 }
+
+// Debug
+// int main(int argc, char** argv) 
+// {
+//     OS os = OS::Unknown;
+//     #ifdef _WIN32
+//         os = OS::Windows;
+//     #elif __linux__
+//         os = OS::Linux;
+//     #elif __APPLE__
+//         os = OS::macOS;
+//     #else
+//         cerr << "Unknown or unsupported operating system" << endl;
+//     #endif
+
+//     vector<string> args;
+//     unordered_map<string, bool> options = {{"-h", 0}, {"--help", 0}, {"-e", 0}, {"--exclude", 0}, {"-o", 0}, {"--output", 0},
+//     {"-md", 0}, {"--make-directory", 0}};
+//     string program_name = getProgramName(argv[0]);
+//     args.assign(argv, argv+argc);
+//     setOptions(args, options);
+//     if(options.at("-h") || options.at("--help")) {
+//         showHelp(program_name);
+//         return 0;
+//     }
+//     string p = getPath(args, os);
+//     cout << "path: " << p << endl;
+//     filesystem::path path(p);
+//     string text_file = getTextFile(args);
+//     cout << "text_file: " << text_file << endl;
+//     unordered_set<string> patterns = getExcludePattern(args);
+//     if(options.at("-md") || options.at("--make-directory")) {
+//         ifstream file(text_file);
+//         if(!file.is_open()) {
+//             cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
+//         } else {
+//             makeDirectory(path, file);
+//         }
+//         file.close();
+//     } else {
+//         ofstream file(text_file);
+//         if(!text_file.empty() && !file.is_open()) {
+//             cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
+//         } else {
+//             printDirectoryTree(path, patterns, file);
+//         }
+//         file.close();
+//     }
+//     return 0;
+// }
