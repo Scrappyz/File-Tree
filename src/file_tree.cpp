@@ -11,21 +11,6 @@
 
 using namespace std;
 
-bool isValidPath(const string& path, const OS& os) // not in use
-{
-    bool check = false;
-    for(int i = 0; i < path.size(); i++) {
-        if(!check && isDirectorySeparator(path[i], os)) {
-            check = true;
-        } else if(check && !isDirectorySeparator(path[i], os)) {
-            check = false;
-        } else if(check && isDirectorySeparator(path[i], os)) {
-            return false;
-        }
-    }
-    return true;
-}
-
 bool isAbsolutePath(const string& path, const OS& os)
 {
     if(path.empty()) {

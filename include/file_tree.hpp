@@ -1,6 +1,5 @@
 #pragma once
 
-bool isValidPath(const std::string& path, const OS& os);
 bool isAbsolutePath(const std::string& path, const OS& os);
 bool invalidFilenameChar(char ch);
 bool isDirectorySeparator(char ch, const OS& os);
