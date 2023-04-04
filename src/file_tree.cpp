@@ -4,9 +4,40 @@
 #include <filesystem>
 #include <vector>
 #include <unordered_set>
+#include "os.hpp"
 #include "file_tree.hpp"
 
 using namespace std;
+
+bool isAbsolutePath(const string& path, const OS& os)
+{
+    if(path.empty()) {
+        cerr << "[Error] Path is empty" << endl;
+        return false;
+    }
+    if(os == OS::Windows) {
+        if(path[0] == '/' || path[0] == '\\') {
+            return true;
+        } else if(path.size() >= 3 && isupper(path[0]) && path[1] == ':' && (path[2] == '/' || path[2] == '\\')) {
+            return true;
+        } else {
+            return false;
+        }
+    } else if(os == OS::Linux) {
+        if(path[0] == '/') {
+            return true;
+        } else {
+            return false;
+        }
+    } else if(os == OS::Mac_OS) {
+        if(path.size() >= 2 && path[0] == ':' && path[1] == ':') {
+            return true;
+        } else {
+            return false;
+        }
+    } 
+    return false;
+}
 
 bool invalidFilenameChar(char ch)
 {
@@ -70,6 +101,18 @@ bool isExclude(const string& filename, const unordered_set<string>& excludes)
     return false;
 }
 
+void createFile(const string& path)
+{
+    ofstream file(path);
+    file.close();
+}
+
+void createFolder(const string& path)
+{
+    filesystem::path dir(path);
+    filesystem::create_directories(dir);
+}
+
 void makeDirectory(const filesystem::path& path, ifstream& text_file)
 {
     if(filesystem::exists(path)) {
@@ -95,8 +138,9 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
         }
 
         str.clear();
+        str = filesystem::absolute(path).string();
         if(!files.empty()) {
-            str = files[0].first;
+            str += files[0].first;
             if(str.back() != '/' && str.back() != '\\') {
                 str += "/";
             }
@@ -123,14 +167,12 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
                     is_dir = true;
                 }
                 if(str.back() == '/' || str.back() == '\\' || is_dir) {
-                    filesystem::path dir(str);
-                    filesystem::create_directories(dir);
+                    createFolder(str);
                     if(str.back() != '/' && str.back() != '\\') {
                         str += "/";
                     }
                 } else {
-                    ofstream fs(str);
-                    fs.close();
+                    createFile(str);
                 }
             }
         }
