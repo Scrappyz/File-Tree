@@ -4,10 +4,27 @@
 #include <filesystem>
 #include <vector>
 #include <unordered_set>
+#include <unistd.h>
 #include "os.hpp"
 #include "file_tree.hpp"
+#include "print.hpp"
 
 using namespace std;
+
+bool isValidPath(const string& path, const OS& os) // not in use
+{
+    bool check = false;
+    for(int i = 0; i < path.size(); i++) {
+        if(!check && isDirectorySeparator(path[i], os)) {
+            check = true;
+        } else if(check && !isDirectorySeparator(path[i], os)) {
+            check = false;
+        } else if(check && isDirectorySeparator(path[i], os)) {
+            return false;
+        }
+    }
+    return true;
+}
 
 bool isAbsolutePath(const string& path, const OS& os)
 {
@@ -69,6 +86,32 @@ bool invalidFilenameChar(char ch)
     }
 }
 
+bool isDirectorySeparator(char ch, const OS& os)
+{
+    if(os == OS::Windows) {
+        if(ch == '/' || ch == '\\') {
+            return true;
+        } else {
+            return false;
+        }
+    } else if(os == OS::Linux) {
+        if(ch == '/') {
+            return true;
+        } else {
+            return false;
+        }
+    } else if(os == OS::Mac_OS) {
+        if(ch == ':') {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        cerr << "[Error] Unknown Operating System" << endl;
+        return false;
+    }
+}
+
 bool isExclude(const string& filename, const unordered_set<string>& excludes)
 {
     for(const auto& exc : excludes) {
@@ -99,6 +142,61 @@ bool isExclude(const string& filename, const unordered_set<string>& excludes)
         }
     }
     return false;
+}
+
+string getCallPath()
+{
+    char currentPath[FILENAME_MAX];
+    getcwd(currentPath, FILENAME_MAX);
+    return string(currentPath);
+}
+
+void addDirectorySeparator(string& path, const OS& os)
+{
+    if(os == OS::Windows && path.back() != '/' && path.back() != '\\') {
+        path += "/";
+    } else if(os == OS::Linux && path.back() != '/') {
+        path += "/";
+    } else if(os == OS::Mac_OS && path.back() != ':') {
+        path += ":";
+    }
+}
+
+void joinPath(string& path, const string& child_path, const OS& os)
+{
+    if(os == OS::Unknown) {
+        cerr << "[Error] Unknown Operating System" << endl;
+        return;
+    }
+    vector<string> cpath;
+    string temp;
+    for(int i = 0; i < child_path.size(); i++) {
+        if(isDirectorySeparator(child_path[i], os)) {
+            cpath.push_back(temp);
+            temp.clear();
+            while(isDirectorySeparator(child_path[i+1], os)) {
+                i++;
+            }
+            continue;
+        }
+        temp.push_back(child_path[i]);
+    }
+    cpath.push_back(temp);
+    temp.clear();
+    print(cpath, '\n');
+    for(int i = 0; i < cpath.size(); i++) {
+        if(cpath[i] == "..") {
+            while(!isDirectorySeparator(path.back(), os)) {
+                path.pop_back();
+            }
+            path.pop_back();
+        } else if(cpath[i] == ".") {
+            continue;
+        } else {
+            addDirectorySeparator(path, os);
+            path += cpath[i];
+        }
+    }
 }
 
 void createFile(const string& path)
