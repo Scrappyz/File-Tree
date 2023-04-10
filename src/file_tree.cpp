@@ -11,34 +11,20 @@
 
 using namespace std;
 
-bool isAbsolutePath(const string& path, const OS& os)
+bool isPathFormatValid(const string& path) 
 {
-    if(path.empty()) {
-        cerr << "[Error] Path is empty" << endl;
+    try {
+        filesystem::path testPath(path);
+        return true;
+    }
+    catch (const exception&) {
         return false;
     }
-    if(os == OS::Windows) {
-        if(path[0] == '/' || path[0] == '\\') {
-            return true;
-        } else if(path.size() >= 3 && isupper(path[0]) && path[1] == ':' && (path[2] == '/' || path[2] == '\\')) {
-            return true;
-        } else {
-            return false;
-        }
-    } else if(os == OS::Linux) {
-        if(path[0] == '/') {
-            return true;
-        } else {
-            return false;
-        }
-    } else if(os == OS::Mac_OS) {
-        if(path.size() >= 2 && path[0] == ':' && path[1] == ':') {
-            return true;
-        } else {
-            return false;
-        }
-    } 
-    return false;
+}
+
+bool pathExists(const string& path)
+{
+    return filesystem::exists(filesystem::path(path));
 }
 
 bool invalidFilenameChar(char ch)
@@ -71,30 +57,30 @@ bool invalidFilenameChar(char ch)
     }
 }
 
-bool isDirectorySeparator(char ch, const OS& os)
+bool isDirectorySeparator(char ch)
 {
-    if(os == OS::Windows) {
+    #ifdef _WIN32
         if(ch == '/' || ch == '\\') {
             return true;
         } else {
             return false;
         }
-    } else if(os == OS::Linux) {
+    #elif __linux__
         if(ch == '/') {
             return true;
         } else {
             return false;
         }
-    } else if(os == OS::Mac_OS) {
+    #elif __APPLE__
         if(ch == ':') {
             return true;
         } else {
             return false;
         }
-    } else {
-        cerr << "[Error] Unknown Operating System" << endl;
+    #else
+        std::cerr << "[Error] Unknown Operating System" << std::endl;
         return false;
-    }
+    #endif
 }
 
 bool isExclude(const string& filename, const unordered_set<string>& excludes)
@@ -147,41 +133,39 @@ void addDirectorySeparator(string& path, const OS& os)
     }
 }
 
-void joinPath(string& path, const string& child_path, const OS& os)
+string joinPath(const string& path, const string& child_path)
 {
-    if(os == OS::Unknown) {
-        cerr << "[Error] Unknown Operating System" << endl;
-        return;
+    if(!isPathFormatValid(path)) {
+        throw runtime_error("Invalid path: " + path);
     }
-    vector<string> cpath;
+    if(!isPathFormatValid(child_path)) {
+        throw runtime_error("Invalid child path: " + child_path);
+    }
+
+    filesystem::path p1(path);
+    filesystem::path p2(child_path);
+
+    if(p2.is_absolute()) {
+        return p2.string();
+    }
     string temp;
     for(int i = 0; i < child_path.size(); i++) {
-        if(isDirectorySeparator(child_path[i], os)) {
-            cpath.push_back(temp);
+        if(isDirectorySeparator(child_path[i]) || i == child_path.size()-1) {
+            if(i == child_path.size()-1 && !isDirectorySeparator(child_path[i])) {
+                temp.push_back(child_path[i]);
+            }
+            if(temp == "..") {
+                p1 = p1.parent_path();
+            } else {
+                p1 /= temp;
+            }
             temp.clear();
-            while(isDirectorySeparator(child_path[i+1], os)) {
-                i++;
-            }
-            continue;
-        }
-        temp.push_back(child_path[i]);
-    }
-    cpath.push_back(temp);
-    temp.clear();
-    print(cpath, '\n');
-    for(int i = 0; i < cpath.size(); i++) {
-        if(cpath[i] == "..") {
-            while(!isDirectorySeparator(path.back(), os)) {
-                path.pop_back();
-            }
-            path.pop_back();
-        } else if(cpath[i] == ".") {
-            continue;
         } else {
-            addDirectorySeparator(path, os);
-            path += cpath[i];
+            temp.push_back(child_path[i]);
         }
     }
+
+    return p1.string();
 }
 
 void createFile(const string& path)
