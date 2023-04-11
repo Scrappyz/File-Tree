@@ -136,6 +136,7 @@ string joinPath(const string& path, const string& child_path)
     if(p2.is_absolute()) {
         return p2.string();
     }
+
     string temp;
     for(int i = 0; i < child_path.size(); i++) {
         if(isDirectorySeparator(child_path[i]) || i == child_path.size()-1) {
@@ -195,6 +196,9 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
         str.clear();
         str = filesystem::absolute(path).string();
         if(!files.empty()) {
+            if(!isDirectorySeparator(str.back())) {
+                str += filesystem::path::preferred_separator;
+            }
             str += files[0].first;
             if(str.back() != '/' && str.back() != '\\') {
                 str += "/";
