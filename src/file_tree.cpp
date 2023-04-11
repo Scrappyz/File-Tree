@@ -171,69 +171,44 @@ void createFolder(const string& path)
 
 void makeDirectory(const filesystem::path& path, ifstream& text_file)
 {
+    static bool all = false;
     if(filesystem::exists(path)) {
         vector<pair<string, int>> files;
-        string str;
-        while(getline(text_file, str)) {
+        string temp;
+        while(getline(text_file, temp)) {
             int i = 0;
             int lvl = 0;
             string filename;
-            while(str.back() == ' ') {
-                str.pop_back();
+            while(temp.back() == ' ') {
+                temp.pop_back();
             }
-            while(i < str.size() && (str[i] == '+' || str[i] == '|' || str[i] == '-' || str[i] == ' ')) {
+            while(i < temp.size() && (temp[i] == '+' || temp[i] == '|' || temp[i] == '-' || temp[i] == ' ')) {
                 lvl++;
                 i++;
             }
             lvl /= 4;
-            while(i < str.size()) {
-                filename.push_back(str[i]);
+            while(i < temp.size()) {
+                filename.push_back(temp[i]);
                 i++;
             }
             files.push_back(make_pair(filename, lvl));
         }
+        print(files, '\n');
+        temp.clear();
 
-        str.clear();
-        str = filesystem::absolute(path).string();
-        if(!files.empty()) {
-            if(!isDirectorySeparator(str.back())) {
-                str += filesystem::path::preferred_separator;
-            }
-            str += files[0].first;
-            if(str.back() != '/' && str.back() != '\\') {
-                str += "/";
-            }
-            int sub = 0;
-            for(int i = 1; i < files.size(); i++) {
-                sub = (files[i-1].second - files[i].second) + 1;
-                if(sub > 0) {
-                    int counter = 0;
-                    while(str.back() == '/' || str.back() == '\\') {
-                        str.pop_back();
-                    }
-                    for(int j = str.size()-1; j >= 0 && counter < sub; j--) {
-                        if(str[j] == '/' || str[j] == '\\') {
-                            counter++;
-                        } 
-                        if(counter != sub) {
-                            str.pop_back();
-                        }
-                    }
+        filesystem::path p(path);
+        for(int i = 0; i < files.size(); i++) {
+            if(i == 0 || i > 0 && files[i-1].second < files[i].second) {
+                p /= filesystem::path(files[i].first);
+            } else if(i > 0 && files[i-1].second >= files[i].second) {
+                int sub = (files[i-1].second - files[i].second) + 1;
+                while(sub > 0) {
+                    p = p.parent_path();
+                    sub--;
                 }
-                str += files[i].first;
-                bool is_dir = false;
-                if(i < files.size()-1 && files[i].second < files[i+1].second) {
-                    is_dir = true;
-                }
-                if(str.back() == '/' || str.back() == '\\' || is_dir) {
-                    createFolder(str);
-                    if(str.back() != '/' && str.back() != '\\') {
-                        str += "/";
-                    }
-                } else {
-                    createFile(str);
-                }
+                p /= filesystem::path(files[i].first);
             }
+            cout << p.string() << endl;
         }
     }
 }
