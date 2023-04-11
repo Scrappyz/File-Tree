@@ -163,15 +163,17 @@ void createFile(const string& path)
     file.close();
 }
 
-void createFolder(const string& path)
+void createFolder(const string& path, bool delete_contents)
 {
     filesystem::path dir(path);
+    if(delete_contents) {
+        filesystem::remove_all(dir);
+    }
     filesystem::create_directories(dir);
 }
 
 void makeDirectory(const filesystem::path& path, ifstream& text_file)
 {
-    static bool all = false;
     if(filesystem::exists(path)) {
         vector<pair<string, int>> files;
         string temp;
@@ -179,7 +181,7 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
             int i = 0;
             int lvl = 0;
             string filename;
-            while(temp.back() == ' ') {
+            while(temp.back() == ' ' || invalidFilenameChar(temp.back())) {
                 temp.pop_back();
             }
             while(i < temp.size() && (temp[i] == '+' || temp[i] == '|' || temp[i] == '-' || temp[i] == ' ')) {
@@ -197,6 +199,7 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
         temp.clear();
 
         filesystem::path p(path);
+        bool all = false;
         for(int i = 0; i < files.size(); i++) {
             if(i == 0 || i > 0 && files[i-1].second < files[i].second) {
                 p /= filesystem::path(files[i].first);
@@ -208,7 +211,47 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
                 }
                 p /= filesystem::path(files[i].first);
             }
-            cout << p.string() << endl;
+
+            bool is_dir = false;
+            if(!p.has_extension() || i < files.size()-1 && files[i].second < files[i+1].second) {
+                is_dir = true;
+            }
+          
+            if(!pathExists(p.string())) {
+                if(is_dir) {
+                    createFolder(p.string(), 1);
+                } else {
+                    createFile(p.string());
+                }
+            } else if(pathExists(p.string())) {
+                char ch;
+                if(!all) {
+                    cout << "[Warning] " << p.filename() << " already exists. Overwrite file?" << endl;
+                    cout << "Input [Y] for yes, [A] for yes to all, [N] for no, [X] to cancel: ";
+                    cin >> ch;
+                } else {
+                    ch = 'Y';
+                }
+                if(toupper(ch) == 'Y' || toupper(ch) == 'A') {
+                    if(toupper(ch) == 'A') {
+                        all = true;
+                    }
+                    if(is_dir) {
+                        createFolder(p.string(), 1);
+                    } else {
+                        createFile(p.string());
+                    }
+                } else if(toupper(ch) == 'X') {
+                    return;
+                }
+            }
+
+            // cout << p.string();
+            // if(is_dir) {
+            //     cout << " is a folder" << endl;
+            // } else {
+            //     cout << " is a file" << endl;
+            // }
         }
     }
 }
