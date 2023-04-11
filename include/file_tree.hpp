@@ -1,11 +1,10 @@
 #pragma once
 
-bool isAbsolutePath(const std::string& path, const OS& os);
+bool isAbsolutePath(const std::string& path);
 bool invalidFilenameChar(char ch);
-bool isDirectorySeparator(char ch, const OS& os);
+bool isDirectorySeparator(char ch);
 bool isExclude(const std::string& filename, const std::unordered_set<std::string>& excludes);
 std::string getCallPath();
-void addDirectorySeparator(std::string& path, const OS& os);
 std::string joinPath(const std::string& path, const std::string& child_path);
 void createFile(const std::string& path);
 void createFolder(const std::string& path);

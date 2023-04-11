@@ -6,7 +6,6 @@
 #include <fstream>
 #include <filesystem>
 #include <unistd.h>
-#include "os.hpp"
 #include "file_tree.hpp"
 
 using namespace std;
@@ -84,7 +83,7 @@ string getPath(const vector<string>& args)
     return path;
 }
 
-string getTextFile(const vector<string>& args, const OS& os) 
+string getTextFile(const vector<string>& args) 
 {
     string path;
     for(int i = 0; i < args.size(); i++) {

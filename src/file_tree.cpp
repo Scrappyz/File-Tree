@@ -5,7 +5,6 @@
 #include <vector>
 #include <unordered_set>
 #include <unistd.h>
-#include "os.hpp"
 #include "file_tree.hpp"
 #include "print.hpp"
 
@@ -120,17 +119,6 @@ string getCallPath()
     char currentPath[FILENAME_MAX];
     getcwd(currentPath, FILENAME_MAX);
     return string(currentPath);
-}
-
-void addDirectorySeparator(string& path, const OS& os)
-{
-    if(os == OS::Windows && path.back() != '/' && path.back() != '\\') {
-        path += "/";
-    } else if(os == OS::Linux && path.back() != '/') {
-        path += "/";
-    } else if(os == OS::Mac_OS && path.back() != ':') {
-        path += ":";
-    }
 }
 
 string joinPath(const string& path, const string& child_path)
