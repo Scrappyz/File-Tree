@@ -193,6 +193,7 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
                 filename.push_back(temp[i]);
                 i++;
             }
+            
             files.push_back(make_pair(filename, lvl));
         }
         print(files, '\n');
@@ -213,7 +214,7 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
             }
 
             bool is_dir = false;
-            if(!p.has_extension() || i < files.size()-1 && files[i].second < files[i+1].second) {
+            if(!p.has_extension()) {
                 is_dir = true;
             }
           
@@ -246,12 +247,12 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
                 }
             }
 
-            // cout << p.string();
-            // if(is_dir) {
-            //     cout << " is a folder" << endl;
-            // } else {
-            //     cout << " is a file" << endl;
-            // }
+            cout << p.string();
+            if(is_dir) {
+                cout << " is a folder" << endl;
+            } else {
+                cout << " is a file" << endl;
+            }
         }
     }
 }
