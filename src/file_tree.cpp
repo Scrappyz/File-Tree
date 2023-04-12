@@ -172,15 +172,19 @@ void createFolder(const string& path, bool delete_contents)
     filesystem::create_directories(dir);
 }
 
-void makeDirectory(const filesystem::path& path, ifstream& text_file)
+void makeDirectory(const filesystem::path& path, ifstream& text_file, const unordered_set<string>& pattern)
 {
     if(filesystem::exists(path)) {
-        vector<pair<string, int>> files;
+        // files is a vector of <filename, level> to represent the hierarchy
+        vector<pair<string, int>> files; 
         string temp;
+        int prev = -1;
         while(getline(text_file, temp)) {
             int i = 0;
             int lvl = 0;
             string filename;
+
+            // extract the filename and level from temp
             while(temp.back() == ' ' || invalidFilenameChar(temp.back())) {
                 temp.pop_back();
             }
@@ -193,15 +197,35 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
                 filename.push_back(temp[i]);
                 i++;
             }
-            
+
+            // checks if current folder/file is excluded
+            // if filename is a folder, exclude its contents as well
+            bool is_exclude = isExclude(filename, pattern);
+            if(prev >= 0 && lvl > prev) {
+                continue;
+            }
+            if(is_exclude) {
+                prev = lvl;
+                continue;
+            }
+            prev = -1;
+
+            // prevents files from being directories
+            if(!files.empty()) {
+                filesystem::path p(files.back().first);
+                if(p.has_extension() && lvl > files.back().second) {
+                    continue;
+                }
+            }
+
             files.push_back(make_pair(filename, lvl));
         }
-        print(files, '\n');
         temp.clear();
 
         filesystem::path p(path);
         bool all = false;
         for(int i = 0; i < files.size(); i++) {
+            // append the path based on the hierarchy in "files"
             if(i == 0 || i > 0 && files[i-1].second < files[i].second) {
                 p /= filesystem::path(files[i].first);
             } else if(i > 0 && files[i-1].second >= files[i].second) {
@@ -213,11 +237,13 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
                 p /= filesystem::path(files[i].first);
             }
 
+            // check if p is a directory
             bool is_dir = false;
             if(!p.has_extension()) {
                 is_dir = true;
             }
-          
+
+            // Overwrite warning
             if(!pathExists(p.string())) {
                 if(is_dir) {
                     createFolder(p.string(), 1);
@@ -245,13 +271,6 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file)
                 } else if(toupper(ch) == 'X') {
                     return;
                 }
-            }
-
-            cout << p.string();
-            if(is_dir) {
-                cout << " is a folder" << endl;
-            } else {
-                cout << " is a file" << endl;
             }
         }
     }

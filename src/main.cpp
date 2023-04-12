@@ -160,11 +160,11 @@ int main(int argc, char** argv)
     // string p1 = "D:/Documents/Documents/ddl/ccs/";
     // string p2 = "/gg/hhh/";
     // cout << joinPath(p1, p2) << endl;
-    vector<string> args = {"name", "-md", "../../test.txt"};
+    vector<string> args = {"name", "-md", "../../test.txt", "-e", "CurrentDir/", "file/"};
     unordered_map<string, bool> options = {{"-h", 0}, {"--help", 0}, {"-e", 0}, {"--exclude", 0}, {"-o", 0}, {"--output", 0},
     {"-md", 0}, {"--make-directory", 0}};
     string program_name = getProgramName(argv[0]);
-    //args.assign(argv, argv+argc);
+    args.assign(argv, argv+argc);
     setOptions(args, options);
     if(options.at("-h") || options.at("--help")) {
         showHelp(program_name);
@@ -181,7 +181,7 @@ int main(int argc, char** argv)
         if(!file.is_open()) {
             cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
         } else {
-            makeDirectory(path, file);
+            makeDirectory(path, file, patterns);
         }
         file.close();
     } else {
