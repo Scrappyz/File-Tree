@@ -66,7 +66,12 @@ string getPath(const vector<string>& args)
 {
     string path;
     if(args.size() > 1 && args[1][0] != '-') {
-        filesystem::path p(args[1]);
+        string temp = args[1];
+        while(invalidFilenameChar(temp.back())) {
+            temp.pop_back();
+        }
+
+        filesystem::path p(temp);
         if(p.string() == ".") {
             return getCallPath();
         } else if(p.is_absolute()) {
@@ -86,7 +91,11 @@ string getTextFile(const vector<string>& args)
     string path;
     for(int i = 0; i < args.size(); i++) {
         if(i < args.size()-1 && args[i][0] == '-' && (args[i] == "-o" || args[i] == "--output" || args[i] == "-md" || args[i] == "--make-directory")) {
-            path = joinPath(getCallPath(), args[i+1]);
+            string temp = args[i+1];
+            while(invalidFilenameChar(temp.back())) {
+                temp.pop_back();
+            }
+            path = joinPath(getCallPath(), temp);
             break;
         }
     }
@@ -149,7 +158,7 @@ int main(int argc, char** argv)
     // string p1 = "D:/Documents/Documents/ddl/ccs/";
     // string p2 = "/gg/hhh/";
     // cout << joinPath(p1, p2) << endl;
-    vector<string> args = {"name", ".\\bin\\Debug\\", "-md", "../../test.txt", "-e", "CurrentDir/", "file/"};
+    vector<string> args = {"name", ".\\VS Code\\"};
     unordered_map<string, bool> options = {{"-h", 0}, {"--help", 0}, {"-e", 0}, {"--exclude", 0}, {"-o", 0}, {"--output", 0},
     {"-md", 0}, {"--make-directory", 0}};
     string program_name = getProgramName(argv[0]);
@@ -159,8 +168,9 @@ int main(int argc, char** argv)
         showHelp(program_name);
         return 0;
     }
-    
+    cout << args[1] << endl;
     string p = getPath(args);
+    cout << "path: " << p << endl;
     if(!pathExists(p)) {
         cout << "[Error] Path \"" << p << "\" does not exists" << endl;
         return 0;
