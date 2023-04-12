@@ -46,7 +46,6 @@ bool invalidFilenameChar(char ch)
         case '\"':
         case ':':
         case '@':
-        case '+':
         case '`':
         case '|':
         case '=':
