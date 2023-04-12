@@ -246,13 +246,13 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file, const unor
             }
 
             // Overwrite warning
-            if(!pathExists(p.string())) {
+            if(!filesystem::exists(p)) {
                 if(is_dir) {
                     createFolder(p.string(), 1);
                 } else {
                     createFile(p.string());
                 }
-            } else if(pathExists(p.string())) {
+            } else if(filesystem::exists(p)) {
                 char ch;
                 if(!all) {
                     cout << "[Warning] " << p.filename() << " already exists. Overwrite ";

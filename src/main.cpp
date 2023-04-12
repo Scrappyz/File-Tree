@@ -10,6 +10,24 @@
 
 using namespace std;
 
+template<typename T>
+void print(const std::vector<T>& v, char append = '\0', const std::string& separator = ", ") 
+{
+    std::cout << "{";
+    for (std::size_t i = 0; i < v.size(); i++) {
+        if constexpr (std::is_scalar_v<T> || std::is_same_v<T, std::string>) {
+            std::cout << v[i];
+        } else {
+            print(v[i], '\0', separator);
+        }
+
+        if (i != v.size() - 1) {
+            std::cout << separator;
+        }
+    }
+    std::cout << "}" << append;
+}
+
 void showHelp(const string& program)
 {
     cout << "FORMAT:" << endl;
@@ -114,51 +132,9 @@ void setOptions(const vector<string>& args, unordered_map<string, bool>& options
     }
 }
 
-// int main(int argc, char** argv) 
-// {
-//     vector<string> args;
-//     unordered_map<string, bool> options = {{"-h", 0}, {"--help", 0}, {"-e", 0}, {"--exclude", 0}, {"-o", 0}, {"--output", 0},
-//     {"-md", 0}, {"--make-directory", 0}};
-//     string program_name = getProgramName(argv[0]);
-//     args.assign(argv, argv+argc);
-//     setOptions(args, options);
-//     if(options.at("-h") || options.at("--help")) {
-//         showHelp(program_name);
-//         return 0;
-//     }
-//     string p = getPath(args);
-//     cout << "path: " << p << endl;
-//     filesystem::path path(p);
-//     string text_file = getTextFile(args);
-//     cout << "text_file: " << text_file << endl;
-//     unordered_set<string> patterns = getExcludePattern(args);
-//     if(options.at("-md") || options.at("--make-directory")) {
-//         ifstream file(text_file);
-//         if(!file.is_open()) {
-//             cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
-//         } else {
-//             makeDirectory(path, file);
-//         }
-//         file.close();
-//     } else {
-//         ofstream file(text_file);
-//         if(!text_file.empty() && !file.is_open()) {
-//             cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
-//         } else {
-//             printDirectoryTree(path, patterns, file);
-//         }
-//         file.close();
-//     }
-//     return 0;
-// }
-
-// Debug
 int main(int argc, char** argv) 
 {
-    // string p1 = "D:/Documents/Documents/ddl/ccs/";
-    // string p2 = "/gg/hhh/";
-    // cout << joinPath(p1, p2) << endl;
-    vector<string> args = {"name", ".\\VS Code\\"};
+    vector<string> args;
     unordered_map<string, bool> options = {{"-h", 0}, {"--help", 0}, {"-e", 0}, {"--exclude", 0}, {"-o", 0}, {"--output", 0},
     {"-md", 0}, {"--make-directory", 0}};
     string program_name = getProgramName(argv[0]);
@@ -168,9 +144,8 @@ int main(int argc, char** argv)
         showHelp(program_name);
         return 0;
     }
-    cout << args[1] << endl;
+
     string p = getPath(args);
-    cout << "path: " << p << endl;
     if(!pathExists(p)) {
         cout << "[Error] Path \"" << p << "\" does not exists" << endl;
         return 0;
