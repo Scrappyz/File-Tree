@@ -1,6 +1,7 @@
 #pragma once
 
-bool isAbsolutePath(const std::string& path);
+bool isPathFormatValid(const std::string& path);
+bool pathExists(const std::string& path);
 bool invalidFilenameChar(char ch);
 bool isDirectorySeparator(char ch);
 bool isExclude(const std::string& filename, const std::unordered_set<std::string>& excludes);

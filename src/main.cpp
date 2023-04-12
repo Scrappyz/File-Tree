@@ -66,20 +66,9 @@ string getPath(const vector<string>& args)
 {
     string path;
     if(args.size() > 1 && args[1][0] != '-') {
-        string temp;
-        int i = 0;
-        while(i < args[1].size() && (invalidFilenameChar(args[1][i]) || args[1][i] == '.')) {
-            i++;
-        }
-        while(i < args[1].size() && !isDirectorySeparator(args[1][i])) {
-            temp.push_back(args[1][i]);
-            i++;
-        }
-
-        filesystem::path p(temp);
+        filesystem::path p(args[1]);
         if(p.string() == ".") {
-            path = getCallPath();
-            return path;
+            return getCallPath();
         } else if(p.is_absolute()) {
             return args[1];
         } else {
@@ -160,7 +149,7 @@ int main(int argc, char** argv)
     // string p1 = "D:/Documents/Documents/ddl/ccs/";
     // string p2 = "/gg/hhh/";
     // cout << joinPath(p1, p2) << endl;
-    vector<string> args = {"name", "-md", "../../test.txt", "-e", "CurrentDir/", "file/"};
+    vector<string> args = {"name", ".\\bin\\Debug\\", "-md", "../../test.txt", "-e", "CurrentDir/", "file/"};
     unordered_map<string, bool> options = {{"-h", 0}, {"--help", 0}, {"-e", 0}, {"--exclude", 0}, {"-o", 0}, {"--output", 0},
     {"-md", 0}, {"--make-directory", 0}};
     string program_name = getProgramName(argv[0]);
@@ -170,12 +159,17 @@ int main(int argc, char** argv)
         showHelp(program_name);
         return 0;
     }
+    
     string p = getPath(args);
-    cout << "path: " << p << endl;
+    if(!pathExists(p)) {
+        cout << "[Error] Path \"" << p << "\" does not exists" << endl;
+        return 0;
+    }
+
     filesystem::path path(p);
     string text_file = getTextFile(args);
-    cout << "text_file: " << text_file << endl;
     unordered_set<string> patterns = getExcludePattern(args);
+
     if(options.at("-md") || options.at("--make-directory")) {
         ifstream file(text_file);
         if(!file.is_open()) {
@@ -189,7 +183,11 @@ int main(int argc, char** argv)
         if(!text_file.empty() && !file.is_open()) {
             cout << "[Error] Could not open file \"" << text_file << "\"" << endl;
         } else {
-            printDirectoryTree(path, patterns, file);
+            if(path.has_extension()) {
+                cout << "[Info] " << path.filename() << " is not a directory" << endl;
+            } else {
+                printDirectoryTree(path, patterns, file);
+            }
         }
         file.close();
     }

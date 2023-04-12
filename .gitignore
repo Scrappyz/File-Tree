@@ -3,4 +3,4 @@ build/
 include/print.hpp
 .vscode/
 test.txt
-test2.txt
+print.txt

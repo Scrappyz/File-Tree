@@ -143,7 +143,9 @@ string joinPath(const string& path, const string& child_path)
             if(i == child_path.size()-1 && !isDirectorySeparator(child_path[i])) {
                 temp.push_back(child_path[i]);
             }
-            if(temp == "..") {
+            if(temp == ".") {
+                p1 = filesystem::path(getCallPath());
+            } else if(temp == "..") {
                 p1 = p1.parent_path();
             } else {
                 p1 /= temp;
@@ -253,7 +255,13 @@ void makeDirectory(const filesystem::path& path, ifstream& text_file, const unor
             } else if(pathExists(p.string())) {
                 char ch;
                 if(!all) {
-                    cout << "[Warning] " << p.filename() << " already exists. Overwrite file?" << endl;
+                    cout << "[Warning] " << p.filename() << " already exists. Overwrite ";
+                    if(is_dir) {
+                        cout << "folder? ";
+                    } else {
+                        cout << "file? ";
+                    }
+                    cout << "This will erase all of its contents." << endl;
                     cout << "Input [Y] for yes, [A] for yes to all, [N] for no, [X] to cancel: ";
                     cin >> ch;
                 } else {
